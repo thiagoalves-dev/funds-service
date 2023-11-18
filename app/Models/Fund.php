@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\Fund\FundCreated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,10 @@ class Fund extends Model
 
     protected $casts = [
         'aliases' => 'array',
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => FundCreated::class,
     ];
 
     public function manager(): BelongsTo

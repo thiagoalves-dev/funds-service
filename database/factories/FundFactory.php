@@ -12,7 +12,7 @@ class FundFactory extends Factory
         return [
             'manager_id' => Manager::factory()->create()->getKey(),
             'name'       => fake()->company(),
-            'start_year' => fake()->year(),
+            'start_year' => intval(fake()->year()),
             'aliases'    => [
                 fake()->currencyCode(),
                 fake()->currencyCode(),
