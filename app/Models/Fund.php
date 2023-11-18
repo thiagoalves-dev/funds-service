@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Events\Fund\FundCreated;
+use App\Events\FundUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ class Fund extends Model
 
     protected $dispatchesEvents = [
         'created' => FundCreated::class,
+        'updated' => FundUpdated::class,
     ];
 
     public function manager(): BelongsTo

@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\Fund;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class FundStoreRequest extends FormRequest
+class FundStoreAndUpdateRequest extends FormRequest
 {
     public function rules(): array
     {

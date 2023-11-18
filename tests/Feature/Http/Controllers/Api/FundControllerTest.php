@@ -3,6 +3,7 @@
 namespace Feature\Http\Controllers\Api;
 
 use App\Events\Fund\FundCreated;
+use App\Events\FundUpdated;
 use App\Models\Fund;
 use App\Models\Manager;
 use Illuminate\Support\Facades\Event;
@@ -11,6 +12,15 @@ use Tests\TestCase;
 
 class FundControllerTest extends TestCase
 {
+    private Fund $defaultFund;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->defaultFund = Fund::factory()->create();
+    }
+
     public function testStoreValidationRequiredData(): void
     {
         $this
@@ -118,13 +128,116 @@ class FundControllerTest extends TestCase
 
     public function testShowSuccess()
     {
-        $fund = Fund::factory()->create();
-
         $response = $this
-            ->sendShowRequest($fund->getKey())
+            ->sendShowRequest($this->defaultFund->getKey())
             ->assertStatus(200);
 
-        $this->assertFundResource($response, $fund);
+        $this->assertFundResource($response, $this->defaultFund);
+    }
+
+    public function testUpdateBinding()
+    {
+        $fundId = Fund::max('id') + 1;
+
+        $this
+            ->sendUpdateRequest($fundId)
+            ->assertStatus(404);
+    }
+
+    public function testUpdateValidationRequiredData(): void
+    {
+        $this
+            ->sendUpdateRequest($this->defaultFund->getKey())
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'manager_id',
+                'name',
+                'start_year',
+                'aliases',
+            ]);
+    }
+
+    public function testUpdateValidationDataSpecifications(): void
+    {
+        $this
+            ->sendUpdateRequest($this->defaultFund->getKey(), [
+                'manager_id' => 'a',
+                'name'       => fake()->realTextBetween(300, 350),
+                'start_year' => 'a',
+                'aliases'    => 'a',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'manager_id',
+                'name',
+                'start_year',
+                'aliases',
+            ]);
+    }
+
+    public function testUpdateValidationManagerIdExists(): void
+    {
+        $managerId = Manager::max('id') + 1;
+
+        $this
+            ->sendUpdateRequest($this->defaultFund->getKey(), [
+                'manager_id' => $managerId,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'manager_id',
+            ]);
+    }
+
+    public function testUpdateValidationAliasesArrayLength(): void
+    {
+        $this
+            ->sendUpdateRequest($this->defaultFund->getKey(), [
+                'aliases' => [],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'aliases',
+            ]);
+    }
+
+    public function testUpdateValidationAliasesType(): void
+    {
+        $this
+            ->sendUpdateRequest($this->defaultFund->getKey(), [
+                'aliases' => [1],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'aliases.0',
+            ]);
+    }
+
+    public function testUpdateValidationAliasesStringLength(): void
+    {
+        $this
+            ->sendUpdateRequest($this->defaultFund->getKey(), [
+                'aliases' => [fake()->realTextBetween(30)],
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'aliases.0',
+            ]);
+    }
+
+    public function testUpdateSuccess(): void
+    {
+        Event::fake();
+
+        $newFundData = Fund::factory()->make();
+
+        $response = $this
+            ->sendUpdateRequest($this->defaultFund->getKey(), $newFundData->toArray())
+            ->assertStatus(200);
+
+        $this->assertFundResource($response, $this->defaultFund->refresh());
+
+        Event::assertDispatched(FundUpdated::class);
     }
 
     private function sendStoreRequest(array $data = [])
@@ -135,6 +248,11 @@ class FundControllerTest extends TestCase
     private function sendShowRequest(int $id)
     {
         return $this->sendRequest('get', route('api.funds.show', $id));
+    }
+
+    private function sendUpdateRequest(int $id, array $data = [])
+    {
+        return $this->sendRequest('put', route('api.funds.update', $id), $data);
     }
 
     private function sendRequest(string $method, string $route, array $data = [])
