@@ -6,12 +6,15 @@ use App\Events\Fund\FundCreated;
 use App\Events\FundUpdated;
 use App\Models\Fund;
 use App\Models\Manager;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class FundControllerTest extends TestCase
 {
+    use DatabaseMigrations;
+    
     private Fund $defaultFund;
 
     protected function setUp(): void
