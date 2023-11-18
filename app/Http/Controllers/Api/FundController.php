@@ -27,4 +27,14 @@ class FundController extends Controller
 
         return new FundResource($fund->refresh());
     }
+
+    public function destroy(Fund $fund)
+    {
+        $fund->delete();
+
+        return response()
+            ->json([
+                'message' => 'Fund deleted successfully!',
+            ], 200);
+    }
 }

@@ -3,6 +3,7 @@
 namespace Feature\Http\Controllers\Api;
 
 use App\Events\Fund\FundCreated;
+use App\Events\FundDeleted;
 use App\Events\FundUpdated;
 use App\Models\Fund;
 use App\Models\Manager;
@@ -14,7 +15,7 @@ use Tests\TestCase;
 class FundControllerTest extends TestCase
 {
     use DatabaseMigrations;
-    
+
     private Fund $defaultFund;
 
     protected function setUp(): void
@@ -243,6 +244,27 @@ class FundControllerTest extends TestCase
         Event::assertDispatched(FundUpdated::class);
     }
 
+    public function testDestroyBinding()
+    {
+        $fundId = Fund::max('id') + 1;
+
+        $this
+            ->sendDestroyRequest($fundId)
+            ->assertStatus(404);
+    }
+
+    public function testDestroySuccess()
+    {
+        Event::fake();
+
+        $this
+            ->sendDestroyRequest($this->defaultFund->getKey())
+            ->assertStatus(200)
+            ->assertJsonStructure(['message']);
+
+        Event::assertDispatched(FundDeleted::class);
+    }
+
     private function sendStoreRequest(array $data = [])
     {
         return $this->sendRequest('post', route('api.funds.store'), $data);
@@ -256,6 +278,11 @@ class FundControllerTest extends TestCase
     private function sendUpdateRequest(int $id, array $data = [])
     {
         return $this->sendRequest('put', route('api.funds.update', $id), $data);
+    }
+
+    private function sendDestroyRequest(int $id)
+    {
+        return $this->sendRequest('delete', route('api.funds.destroy', $id));
     }
 
     private function sendRequest(string $method, string $route, array $data = [])
