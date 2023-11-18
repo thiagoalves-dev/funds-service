@@ -9,4 +9,4 @@ Route::resource('companies', CompanyController::class, ['only' => ['index']]);
 
 Route::resource('managers', ManagerController::class, ['only' => ['index']]);
 
-Route::resource('funds', FundController::class, ['only' => ['store']]);
+Route::resource('funds', FundController::class, ['only' => ['store', 'show']]);

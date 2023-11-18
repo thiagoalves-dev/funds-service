@@ -15,4 +15,9 @@ class FundController extends Controller
 
         return new FundResource($fund);
     }
+
+    public function show(Fund $fund)
+    {
+        return new FundResource($fund);
+    }
 }

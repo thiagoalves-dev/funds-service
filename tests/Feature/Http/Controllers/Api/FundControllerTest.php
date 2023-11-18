@@ -6,6 +6,7 @@ use App\Events\Fund\FundCreated;
 use App\Models\Fund;
 use App\Models\Manager;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class FundControllerTest extends TestCase
@@ -97,9 +98,53 @@ class FundControllerTest extends TestCase
 
         $fundData = Fund::factory()->make();
 
-        $this
+        $response = $this
             ->sendStoreRequest($fundData->toArray())
-            ->assertStatus(201)
+            ->assertStatus(201);
+
+        $this->assertFundResource($response, $fundData);
+
+        Event::assertDispatched(FundCreated::class);
+    }
+
+    public function testShowBinding()
+    {
+        $fundId = Fund::max('id') + 1;
+
+        $this
+            ->sendShowRequest($fundId)
+            ->assertStatus(404);
+    }
+
+    public function testShowSuccess()
+    {
+        $fund = Fund::factory()->create();
+
+        $response = $this
+            ->sendShowRequest($fund->getKey())
+            ->assertStatus(200);
+
+        $this->assertFundResource($response, $fund);
+    }
+
+    private function sendStoreRequest(array $data = [])
+    {
+        return $this->sendRequest('post', route('api.funds.store'), $data);
+    }
+
+    private function sendShowRequest(int $id)
+    {
+        return $this->sendRequest('get', route('api.funds.show', $id));
+    }
+
+    private function sendRequest(string $method, string $route, array $data = [])
+    {
+        return $this->json($method, $route, $data);
+    }
+
+    private function assertFundResource(TestResponse $response, Fund $fundData)
+    {
+        $response
             ->assertJsonStructure([
                 'data' => [
                     'id',
@@ -119,16 +164,9 @@ class FundControllerTest extends TestCase
                 'aliases'    => $fundData->aliases,
             ]);
 
-        Event::assertDispatched(FundCreated::class);
-    }
-
-    private function sendStoreRequest(array $data = [])
-    {
-        return $this->sendRequest('post', 'api.funds.store', $data);
-    }
-
-    private function sendRequest(string $method, string $route, array $data = [])
-    {
-        return $this->json($method, route($route), $data);
+        if ($id = $fundData->getKey()) {
+            $response
+                ->assertJsonFragment(compact('id'));
+        }
     }
 }
