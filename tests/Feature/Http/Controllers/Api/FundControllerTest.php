@@ -3,8 +3,8 @@
 namespace Feature\Http\Controllers\Api;
 
 use App\Events\Fund\FundCreated;
-use App\Events\FundDeleted;
-use App\Events\FundUpdated;
+use App\Events\Fund\FundDeleted;
+use App\Events\Fund\FundUpdated;
 use App\Models\Fund;
 use App\Models\Manager;
 use Illuminate\Foundation\Testing\DatabaseMigrations;

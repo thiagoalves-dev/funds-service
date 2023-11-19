@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use App\Events\Fund\FundCreated;
-use App\Events\FundDeleted;
-use App\Events\FundUpdated;
+use App\Events\Fund\FundDeleted;
+use App\Events\Fund\FundUpdated;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

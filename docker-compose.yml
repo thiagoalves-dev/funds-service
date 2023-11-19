@@ -19,6 +19,14 @@ services:
             - PGDATA=/var/lib/postgresql/data
             - POSTGRES_HOST_AUTH_METHOD=trust
 
+    redis:
+        container_name: 'funds-service-redis'
+        build: .docker/redis
+        ports:
+            - 6301:6379
+        volumes:
+            - "./.docker/redis/data:/data:rw"
+
     php:
         build: .docker/php
         container_name: 'funds-service-php'
@@ -26,19 +34,21 @@ services:
             - .:/var/www/html/funds-service
         links:
             - postgres
+            - redis
         depends_on:
-            - php-build
+            - php-worker
 
-    php-build:
+    php-worker:
         image: php
         build: .docker/php
-        container_name: 'funds-service-php-build'
+        container_name: 'funds-service-php-worker'
         volumes:
             - .:/var/www/html/funds-service
         links:
             - postgres
+            - redis
         command: >
-            bash -c "cd /var/www/html/funds-service && composer setup"
+            bash -c "cd /var/www/html/funds-service && composer setup && php -r 'echo \"Ready to go!\n\";' && php artisan queue:work"
 
     nginx:
         build:

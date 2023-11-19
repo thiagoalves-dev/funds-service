@@ -5,9 +5,13 @@ RUN set -ex && apk --no-cache add postgresql-dev
 
 #Install application dependencies
 RUN apk add --no-cache
-#libzip-dev zip libxml2-dev
 RUN docker-php-ext-install mysqli pdo_mysql pdo_pgsql
-#exif zip soap
+
+RUN apk add --no-cache pcre-dev $PHPIZE_DEPS && \
+    pecl update-channels && \
+    pecl install redis && \
+    docker-php-ext-enable redis && \
+    apk del $PHPIZE_DEPS
 
 RUN apk --no-cache add bash openrc
 
