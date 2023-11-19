@@ -25,6 +25,114 @@ class FundControllerTest extends TestCase
         $this->defaultFund = Fund::factory()->create();
     }
 
+    public function testIndexWithoutFilters()
+    {
+        $response = $this
+            ->sendIndexRequest()
+            ->assertStatus(200);
+
+        $this->assertFundResourceList($response, [$this->defaultFund]);
+    }
+
+    public function testIndexFilterValidation()
+    {
+        $managerId = Manager::max('id') + 1;
+
+        $this
+            ->sendIndexRequest([
+                'manager_id' => $managerId,
+                'name'       => fake()->realTextBetween(300, 400),
+                'start_year' => 'a',
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'manager_id',
+                'name',
+                'start_year',
+            ]);
+    }
+
+    public function testIndexByNameEmptyResult()
+    {
+        $response = $this
+            ->sendIndexRequest([
+                'name' => $this->defaultFund->name . 'abc',
+            ])
+            ->assertStatus(200);
+
+        $this->assertEquals([], $response->json('data'));
+    }
+
+    public function testIndexByNameSuccess()
+    {
+        $response = $this
+            ->sendIndexRequest([
+                'name' => $this->defaultFund->name,
+            ])
+            ->assertStatus(200);
+
+        $this->assertFundResourceList($response, [$this->defaultFund]);
+    }
+
+    public function testIndexByManagerIdEmptyResult()
+    {
+        $managerId = Manager::factory()->create()->getKey();
+
+        $response = $this
+            ->sendIndexRequest([
+                'manager_id' => $managerId,
+            ])
+            ->assertStatus(200);
+
+        $this->assertEquals([], $response->json('data'));
+    }
+
+    public function testIndexByManagerIdSuccess()
+    {
+        $response = $this
+            ->sendIndexRequest([
+                'manager_id' => $this->defaultFund->manager_id,
+            ])
+            ->assertStatus(200);
+
+        $this->assertFundResourceList($response, [$this->defaultFund]);
+    }
+
+    public function testIndexByStartYearEmptyResult()
+    {
+        $response = $this
+            ->sendIndexRequest([
+                'start_year' => $this->defaultFund->start_year + 1,
+            ])
+            ->assertStatus(200);
+
+        $this->assertEquals([], $response->json('data'));
+    }
+
+    public function testIndexByStartYearSuccess()
+    {
+        $response = $this
+            ->sendIndexRequest([
+                'start_year' => $this->defaultFund->start_year,
+            ])
+            ->assertStatus(200);
+
+        $this->assertFundResourceList($response, [$this->defaultFund]);
+    }
+
+    public function testIndexFilteredByAllParams()
+    {
+        $response = $this
+            ->sendIndexRequest([
+                'name'       => $this->defaultFund->name,
+                'manager_id' => $this->defaultFund->manager_id,
+                'start_year' => $this->defaultFund->start_year,
+            ])
+            ->assertStatus(200);
+
+        $this->assertFundResourceList($response, [$this->defaultFund]);
+    }
+
     public function testStoreValidationRequiredData(): void
     {
         $this
@@ -265,6 +373,11 @@ class FundControllerTest extends TestCase
         Event::assertDispatched(FundDeleted::class);
     }
 
+    private function sendIndexRequest(array $data = [])
+    {
+        return $this->sendRequest('get', route('api.funds.index'), $data);
+    }
+
     private function sendStoreRequest(array $data = [])
     {
         return $this->sendRequest('post', route('api.funds.store'), $data);
@@ -290,6 +403,26 @@ class FundControllerTest extends TestCase
         return $this->json($method, $route, $data);
     }
 
+    private function assertFundResourceList(TestResponse $response, array $funds)
+    {
+        $response
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'manager',
+                        'name',
+                        'start_year',
+                        'aliases',
+                    ],
+                ],
+            ]);
+
+        foreach ($funds as $fund) {
+            $this->assertFundResourceData($response, $fund);
+        }
+    }
+
     private function assertFundResource(TestResponse $response, Fund $fundData)
     {
         $response
@@ -301,7 +434,14 @@ class FundControllerTest extends TestCase
                     'start_year',
                     'aliases',
                 ],
-            ])
+            ]);
+
+        $this->assertFundResourceData($response, $fundData);
+    }
+
+    private function assertFundResourceData(TestResponse $response, Fund $fundData)
+    {
+        $response
             ->assertJsonFragment([
                 'manager'    => [
                     'id'   => $fundData->manager->getKey(),
