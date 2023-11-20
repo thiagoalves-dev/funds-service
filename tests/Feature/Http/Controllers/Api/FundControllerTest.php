@@ -3,12 +3,12 @@
 namespace Feature\Http\Controllers\Api;
 
 use App\Events\Fund\FundCreated;
-use App\Events\Fund\FundDeleted;
 use App\Events\Fund\FundUpdated;
 use App\Models\Fund;
 use App\Models\Manager;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -21,6 +21,8 @@ class FundControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Queue::fake();
 
         $this->defaultFund = Fund::factory()->create();
     }
@@ -363,14 +365,14 @@ class FundControllerTest extends TestCase
 
     public function testDestroySuccess()
     {
-        Event::fake();
+        $id = $this->defaultFund->getKey();
 
         $this
-            ->sendDestroyRequest($this->defaultFund->getKey())
+            ->sendDestroyRequest($id)
             ->assertStatus(200)
             ->assertJsonStructure(['message']);
 
-        Event::assertDispatched(FundDeleted::class);
+        $this->assertDatabaseMissing(Fund::class, compact('id'));
     }
 
     private function sendIndexRequest(array $data = [])
