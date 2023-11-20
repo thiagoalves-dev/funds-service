@@ -59,7 +59,7 @@
         ],
         "tests": [
             "clear",
-            "./vendor/bin/phpunit --stop-on-failure --testdox"
+            "@php artisan test --stop-on-failure"
         ]
     },
     "extra": {
