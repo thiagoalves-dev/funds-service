@@ -5,23 +5,23 @@ namespace App\Providers;
 use App\Events\Fund\DuplicateFundWarning;
 use App\Events\Fund\FundCreated;
 use App\Events\Fund\FundUpdated;
-use App\Listeners\Fund\CheckDuplicatedFundListener;
-use App\Listeners\Fund\NotifyDuplicatedFundListener;
+use App\Listeners\Fund\CheckDuplicateFundListener;
+use App\Listeners\Fund\NotifyDuplicateFundListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
         FundCreated::class => [
-            CheckDuplicatedFundListener::class,
+            CheckDuplicateFundListener::class,
         ],
 
         FundUpdated::class => [
-            CheckDuplicatedFundListener::class,
+            CheckDuplicateFundListener::class,
         ],
 
         DuplicateFundWarning::class => [
-            NotifyDuplicatedFundListener::class,
+            NotifyDuplicateFundListener::class,
         ],
     ];
 

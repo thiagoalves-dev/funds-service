@@ -7,12 +7,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class NotifyDuplicatedFundListener implements ShouldQueue
+class NotifyDuplicateFundListener implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
     public function handle(DuplicateFundWarning $event): void
     {
-        echo "Notify that {$event->fund->name} is duplicated! \n";
+        echo "Notify that {$event->fund->name} is duplicate! \n";
     }
 }

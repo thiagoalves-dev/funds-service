@@ -12,21 +12,21 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class CheckDuplicatedFundListener implements ShouldQueue
+class CheckDuplicateFundListener implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
     public function handle(FundCreated|FundUpdated $event): void
     {
-        $duplicatedFunds = $this->getDuplicatedFunds($event);
+        $duplicateFunds = $this->getDuplicateFunds($event);
 
         DuplicateFundWarning::dispatchIf(
-            $duplicatedFunds->isNotEmpty(),
+            $duplicateFunds->isNotEmpty(),
             $event->fund
         );
     }
 
-    private function getDuplicatedFunds(FundCreated|FundUpdated $event): Collection
+    private function getDuplicateFunds(FundCreated|FundUpdated $event): Collection
     {
         return Fund::query()
             ->where('manager_id', $event->fund->manager_id)
