@@ -8,13 +8,12 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class FundCreated
+class DuplicateFundWarning
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(public Fund $fund)
     {
-
     }
 
     public function broadcastOn(): array
