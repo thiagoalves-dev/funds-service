@@ -14,7 +14,9 @@ diagram of the service's entities.
 
 Execute the following command on your terminal to get the project started:
 
-- `docker-compose up --build`;
+```
+docker-compose up --build
+```
 
 Wait for Docker to finish all the processes. That happens when you see the message below:
 
