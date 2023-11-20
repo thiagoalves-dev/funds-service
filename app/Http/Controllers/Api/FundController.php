@@ -7,28 +7,13 @@ use App\Http\Requests\Api\Fund\FundIndexRequest;
 use App\Http\Requests\Api\Fund\FundStoreAndUpdateRequest;
 use App\Http\Resources\FundResource;
 use App\Models\Fund;
-use Illuminate\Database\Eloquent\Builder;
+use App\Repositories\FundRepository;
 
 class FundController extends Controller
 {
     public function index(FundIndexRequest $request)
     {
-        $funds = Fund::query()
-            ->where(function (Builder $builder) use ($request) {
-                if ($name = $request->get('name')) {
-                    $builder->where('name', 'like', "%$name%");
-                }
-
-                if ($managerId = $request->get('manager_id')) {
-                    $builder->where('manager_id', $managerId);
-                }
-
-                if ($startYear = $request->get('start_year')) {
-                    $builder->where('start_year', $startYear);
-                }
-            })
-            ->orderBy('name')
-            ->get();
+        $funds = (new FundRepository)->search($request->validated());
 
         return FundResource::collection($funds);
     }
